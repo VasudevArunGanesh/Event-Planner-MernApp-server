@@ -39,6 +39,6 @@ const eventSchema = new mongoose.Schema(
   }
   
 );
-module.exports = mongoose.model("Events", eventSchema);
+module.exports = mongoose.model("mernproj", eventSchema);
 // const mongoose = require("mongoose");
 
