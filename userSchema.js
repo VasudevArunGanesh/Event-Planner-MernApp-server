@@ -3,11 +3,10 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const userSchema = new mongoose.Schema(
     {
-    _id: ObjectId,
-    newame: String,
+    name: String,
     email: String,
     password: String
     }
 )
 
-module.exports = mongoose.model("mernproj", userSchema);
+module.exports = mongoose.model('user', userSchema);
