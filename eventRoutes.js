@@ -1,9 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const eventSchema = require("./eventSchema");
-const userSchema  = require("./userSchema")
+const userSchema  = require("./userSchema");
 
-
+// var multer = require('multer');
+ 
+// var storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, 'uploads')
+//     },
+//     filename: (req, file, cb) => {
+//         cb(null, file.fieldname + '-' + Date.now())
+//     }
+// });
+ 
+// var upload = multer({ storage: storage });
+// router.use(express.bodyParser({limit: '50mb'}));
 
 router.get("/", (req, res) => {
     res.send({ message: "We did it!" });
@@ -54,6 +66,68 @@ router.get("/", (req, res) => {
         return next(err);
       });
   })
+
+  router.post("/user/createevent", (req, res, next) => {
+    console.log(req.body);
+    eventSchema.create(req.body).then((data) => {
+        console.log("event created");
+        res.json(data);
+    })
+      .catch ((err) => {
+        return next(err);
+    });
+   });
+
+   router.get("/events/:eid", (req, res, next) => {
+    eventSchema.findById(req.params.eid).then((data) => {
+        return res.json(data);
+    }).catch((err) => {
+        return next(err);
+      });
+   })
+
+    
+  //  router.get('/', (req, res) => {
+  //      eventSchema.find({})
+  //      .then((data, err)=>{
+  //          if(err){
+  //              console.log(err);
+  //          }
+  //          res.render('imagepage',{items: data})
+  //      })
+  //  });
+    
+    
+  //  router.post('/', upload.single('image'), (req, res, next) => {
+    
+  //      var obj = {
+  //          name: req.body.name,
+  //          desc: req.body.desc,
+  //          img: {
+  //              data: fs.readFileSync(path.join(__dirname + '/uploads/' + req.file.filename)),
+  //              contentType: 'image/png'
+  //          }
+  //      }
+  //      imgSchema.create(obj)
+  //      .then ((err, item) => {
+  //          if (err) {
+  //              console.log(err);
+  //          }
+  //          else {
+  //              // item.save();
+  //              res.redirect('/');
+  //          }
+  //      });
+  //  });
+
+
+
+
+
+
+
+
+
 
 // router.post("/create-event", (req, res, next) => {
 //   eventSchema.create(req.body, (err, data) => {
