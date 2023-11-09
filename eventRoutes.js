@@ -9,32 +9,52 @@ router.get("/", (req, res) => {
     res.send({ message: "We did it!" });
   });
 
-  router.post("/user/signup", (req, res, next) => {
-    console.log(req.body);
-    userSchema.create(req.body).then((data) => {
+   router.post("/user/signup", (req, res, next) => {
+    userSchema.findOne({ email: req.body.email }).then((data) => {
+      if (data){console.log("Email is already in use");
+        return res.json({message: "user exists with email"});
+      } else {
+        userSchema.create(req.body).then((data) => {
         console.log("user added");
         res.json(data);
-    })
-      .catch ((err) => {
+       }).catch ((err) => {
         return next(err);
     });
-   });
+    
+  }});
+});
 
   router.post("/user/login", (req, res) => {
     const { email, password } = req.body;
     userSchema.findOne({ email: email }).then((user) => {
       if (user) {
-        // databasepassword === given password
         if (user.password === password) {
-          console.log("login successfull");
+          res.json({message:"login successfull", user});
         } else {
-          res.json("Password incorrect");
+          res.json({message: "Password incorrect"});
         }
       } else {
-        console.log("No record exits");
+        res.json({message: "No record exits"});
       }
     });
   });
+
+  router.get("/user/:id/createevent", (req, res, next) => {
+    userSchema.findById(req.params.id).then((data) => {
+        return res.json(data);
+    }).catch((err) => {
+        return next(err);
+      });
+  })
+
+  router.get("/user/:id", (req, res, next) => {
+    userSchema.findById(req.params.id).then((data) => {
+        return res.json(data);
+    }).catch((err) => {
+        return next(err);
+      });
+  })
+
 // router.post("/create-event", (req, res, next) => {
 //   eventSchema.create(req.body, (err, data) => {
 //     if (err) {
