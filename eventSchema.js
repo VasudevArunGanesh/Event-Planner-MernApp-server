@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
+// const subSchema = new mongoose.Schema()
+
 const eventSchema = new mongoose.Schema(
   {
     //_id: ObjectId,
@@ -16,33 +18,16 @@ const eventSchema = new mongoose.Schema(
     organizerContact: String,
     ticketPrice: Number,
     expectedAttendees: Number,
-    useOtherServies: String,
+    ticketBooked: Number,
+    useOtherServices: {
+      hosting: Boolean,
+      parking:Boolean,
+      catering:Boolean,
+      photography:Boolean
+    },
     eventStatus: Number,
     eventPoster: String,
     userId: ObjectId
-/*     venue: {
-      venueName: String,
-      venueAddress: String
-    },
-    organizerContact: {
-      organizerContact: String
-    },
-    tickets: [
-      {
-        ticketPrice: Number
-      }
-    ],
-    expectedAttendees: Number,
-
-    useServices: [{
-      // hosting: Boolean,
-      // parking: Boolean,
-      // catering: Boolean,
-      // photography: Boolean
-      useOtherServies: Boolean
-    ]}
-  }
-   */
 }
 );
-module.exports = mongoose.model('events', eventSchema);
+module.exports = mongoose.model('events', eventSchema);

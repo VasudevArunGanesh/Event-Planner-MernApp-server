@@ -2,51 +2,115 @@ const express = require("express");
 const router = express.Router();
 const eventSchema = require("./eventSchema");
 const userSchema  = require("./userSchema");
+const bcrypt = require('bcrypt');
 
-// var multer = require('multer');
- 
-// var storage = multer.diskStorage({
-//     destination: (req, file, cb) => {
-//         cb(null, 'uploads')
-//     },
-//     filename: (req, file, cb) => {
-//         cb(null, file.fieldname + '-' + Date.now())
-//     }
-// });
- 
-// var upload = multer({ storage: storage });
-// router.use(express.bodyParser({limit: '50mb'}));
+
+router.patch("/", (req,res) =>{
+  for (var event of req.body){
+    var filter = { _id: event._id };
+    eventSchema.findOneAndUpdate(filter, event, {
+      new: true
+    }).then((data) => {
+      // console.log(data.eventName, "updated");
+    }) 
+  }
+  console.log("db updated");
+  res.json({message: "db updated"});
+})
 
 router.get("/", (req, res) => {
-    res.send({ message: "We did it!" });
+  eventSchema.find({}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
   });
 
-   router.post("/user/signup", (req, res, next) => {
-    userSchema.findOne({ email: req.body.email }).then((data) => {
-      if (data){console.log("Email is already in use");
-        return res.json({message: "user exists with email"});
-      } else {
-        userSchema.create(req.body).then((data) => {
-        console.log("user added");
-        res.json(data);
-       }).catch ((err) => {
-        return next(err);
+
+  router.get("/public-events", (req, res) => {
+    eventSchema.find({isPrivate: false}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
     });
+
+  
+
+  
+//    router.post("/user/signup", (req, res, next) => {
+//     userSchema.findOne({ email: req.body.email }).then((data) => {
+//       if (data){console.log("Email is already in use");
+//         return res.json({message: "user exists with email"});
+//       } else {
+//         userSchema.create(req.body).then((data) => {
+//         console.log("user added");
+//         res.json(data);
+//        }).catch ((err) => {
+//         return next(err);
+//     });
     
-  }});
+//   }});
+// });
+
+router.post("/user/signup", (req, res, next) => {
+  userSchema.findOne({ email: req.body.email }).then((data) => {
+    if (data) {
+      console.log("Email is already in use");
+      return res.json({ message: "User exists with email" });
+    } else {
+      bcrypt.hash(req.body.password, 10, (err, hashPassword) => {
+        if (err) {
+          return next(err);
+        }
+
+        const newUser = {
+          name: req.body.name,
+          email: req.body.email,
+          password: hashPassword,
+        };
+
+        userSchema.create(newUser).then((data) => {
+          console.log("User added", newUser);
+          res.json(data);
+        }).catch((err) => {
+          return next(err);
+        });
+      });
+    }
+  });
 });
+
+  // router.post("/user/login", (req, res) => {
+  //   const { email, password } = req.body;
+  //   userSchema.findOne({ email: email }).then((user) => {
+  //     if (user) {
+  //       if (user.password === password) {
+  //         res.json({message:"login successfull", user});
+  //       } else {
+  //         res.json({message: "Password incorrect"});
+  //       }
+  //     } else {
+  //       res.json({message: "No record exits"});
+  //     }
+  //   });
+  // });
 
   router.post("/user/login", (req, res) => {
     const { email, password } = req.body;
     userSchema.findOne({ email: email }).then((user) => {
       if (user) {
-        if (user.password === password) {
-          res.json({message:"login successfull", user});
-        } else {
-          res.json({message: "Password incorrect"});
-        }
+        bcrypt.compare(password, user.password, (err, result) => {
+          if (err) {
+            res.json({ message: "error" });
+          } else if (result) {
+            res.json({ message: "login successful", user});
+          } else {
+            res.json({ message: "password incorrect" });
+          }
+        });
       } else {
-        res.json({message: "No record exits"});
+        res.json({message: "no record exists" });
       }
     });
   });
@@ -61,6 +125,7 @@ router.get("/", (req, res) => {
 
   router.get("/user/:id", (req, res, next) => {
     userSchema.findById(req.params.id).then((data) => {
+      console.log("user details sent");
         return res.json(data);
     }).catch((err) => {
         return next(err);
@@ -87,95 +152,53 @@ router.get("/", (req, res) => {
    })
 
     
-  //  router.get('/', (req, res) => {
-  //      eventSchema.find({})
-  //      .then((data, err)=>{
-  //          if(err){
-  //              console.log(err);
-  //          }
-  //          res.render('imagepage',{items: data})
-  //      })
-  //  });
-    
-    
-  //  router.post('/', upload.single('image'), (req, res, next) => {
-    
-  //      var obj = {
-  //          name: req.body.name,
-  //          desc: req.body.desc,
-  //          img: {
-  //              data: fs.readFileSync(path.join(__dirname + '/uploads/' + req.file.filename)),
-  //              contentType: 'image/png'
-  //          }
-  //      }
-  //      imgSchema.create(obj)
-  //      .then ((err, item) => {
-  //          if (err) {
-  //              console.log(err);
-  //          }
-  //          else {
-  //              // item.save();
-  //              res.redirect('/');
-  //          }
-  //      });
-  //  });
+   router.patch("/events/update/:eid", async (req, res, next) => {
+    const filter = { _id: req.params.eid };
+    await eventSchema.findOneAndUpdate(filter, req.body, {
+      new: true
+    }).then((data) => {
+      console.log(data, "updated");
+      return res.json(data);
+    }).catch((err) => {
+      return next(err);
+    });
+   } )
+
+   
+
+   router.get("/user/:id/home", (req, res, next) => {
+    userSchema.findById(req.params.id).then((data) => {
+        return res.json(data);
+    }).catch((err) => {
+        return next(err);
+      });
+  })
 
 
 
+router.patch('/user/:id/update-pass', async (req, res, next) => {
 
+  try {
+    // const { id } = req.params;
+    const { id, currentPassword, newPassword } = req.body;
+    const user = await userSchema.findById(id);
+    if (!user) {
+      return res.json({ message: 'User not found' });
+    }
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.json({ message: 'Current password is incorrect' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
 
+    return res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
 
-
-
-
-
-// router.post("/create-event", (req, res, next) => {
-//   eventSchema.create(req.body, (err, data) => {
-//     if (err) {
-//       return next(err);
-//     } else {
-//       res.json(data);
-//     }
-//   });
-// });
-
-
-
-// router.delete("/delete-event/:id", (req, res, next) => {
-//   eventSchema.findByIdAndRemove(req.params.id, (err, data) => {
-//     if (err) {
-//       return next(err);
-//     } else {
-//       return res.json(data);
-//     }
-//   });
-// });
-
-// router
-//   .route("/update-event/:id")
-//   .get((req, res, next) => {
-//     // console.log("Hi from server");
-//     eventSchema.findById(req.params.id, (err, data) => {
-//       if (err) {
-//         return next(err);
-//       } else {
-//         console.log("Hi from server");
-//         return res.json(data);
-//       }
-//     });
-//   })
-//   .put((req, res, next) => {
-//     eventSchema.findByIdAndUpdate(
-//       req.params.id,
-//       { $set: req.body },
-//       (err, data) => {
-//         if (err) {
-//           return next(err);
-//         } else {
-//           return res.json(data);
-//         }
-//       }
-//     );
-//   });
+module.exports = router;
 
 module.exports = router;
