@@ -35,7 +35,15 @@ router.get("/", (req, res) => {
     })
     });
 
-  
+    router.get("/events/workshop", (req, res) => {
+      eventSchema.find({isPrivate: false, eventStatus: 0, eventType: 'workshop'}).then((data) => {
+        res.json(data);
+      }).catch((err) => {
+        return next(err);
+  })
+  });
+
+ 
 
   
 //    router.post("/user/signup", (req, res, next) => {
@@ -110,7 +118,7 @@ router.post("/user/signup", (req, res, next) => {
           }
         });
       } else {
-        res.json({message: "no record exists" });
+        res.json({message: "No User Exists" });
       }
     });
   });

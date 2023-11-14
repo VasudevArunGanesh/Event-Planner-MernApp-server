@@ -27,7 +27,11 @@ const eventSchema = new mongoose.Schema(
     },
     eventStatus: Number,
     eventPoster: String,
-    userId: ObjectId
+    userId: ObjectId,
+    registeredUsers: [{
+      email: String,
+      noOfTickets: Number
+    }]
 }
 );
 module.exports = mongoose.model('events', eventSchema);
