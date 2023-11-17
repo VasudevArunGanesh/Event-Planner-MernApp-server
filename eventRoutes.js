@@ -26,9 +26,32 @@ router.get("/", (req, res) => {
   })
   });
 
+  router.get("/:id/events/upc", (req, res) => {
+    eventSchema.find({userId: req.params.id, eventStatus:0}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
+});
+
+router.get("/:id/events/ong", (req, res) => {
+  eventSchema.find({userId: req.params.id, eventStatus:1}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
+
+router.get("/:id/events/term", (req, res) => {
+  eventSchema.find({userId: req.params.id, eventStatus:-1}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
 
   router.get("/public-events", (req, res) => {
-    eventSchema.find({isPrivate: false}).then((data) => {
+    eventSchema.find({isPrivate: false, eventStatus: 0}).then((data) => {
       res.json(data);
     }).catch((err) => {
       return next(err);
@@ -43,23 +66,83 @@ router.get("/", (req, res) => {
   })
   });
 
- 
 
-  
-//    router.post("/user/signup", (req, res, next) => {
-//     userSchema.findOne({ email: req.body.email }).then((data) => {
-//       if (data){console.log("Email is already in use");
-//         return res.json({message: "user exists with email"});
-//       } else {
-//         userSchema.create(req.body).then((data) => {
-//         console.log("user added");
-//         res.json(data);
-//        }).catch ((err) => {
-//         return next(err);
-//     });
-    
-//   }});
-// });
+
+
+router.get("/events/concert", (req, res) => {
+    eventSchema.find({isPrivate: false, eventStatus:0, eventType: 'concert'}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
+});
+
+router.get("/events/gathering", (req, res) => {
+    eventSchema.find({isPrivate: false, eventStatus:0, eventType: 'gathering'}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
+});
+
+router.get("/events/convention", (req, res) => {
+    eventSchema.find({isPrivate: false, eventStatus:0, eventType: 'convention'}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
+});
+
+router.patch("/user/:id/pfp", (req, res, next) =>{
+  const filter = {_id: req.params.id};
+  userSchema.findOneAndUpdate(filter, {pfp: req.body.pfp},{new: true}).then((data) => {
+    console.log(data, "updated");
+    return res.json(data);
+  }).catch((err) => {
+    return next(err);
+  });
+})
+
+router.get("/events/institute", (req, res) => {
+    eventSchema.find({isPrivate: false, eventStatus:0, eventType: 'fests'}).then((data) => {
+      res.json(data);
+    }).catch((err) => {
+      return next(err);
+    })
+});
+router.get("/events/sport", (req, res) => {
+  eventSchema.find({isPrivate: false, eventStatus:0, eventType: 'sport'}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
+router.get("/events/free", (req, res) => {
+  eventSchema.find({isPrivate: false, eventStatus:0, ticketPrice: 0}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
+router.get("/events/local/:loc", (req, res) => {
+  console.log(req.params.loc);
+  var locn = (req.params.loc);
+  eventSchema.find({isPrivate: false, eventStatus:0, venueAddress:new RegExp(locn, 'i')}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
+
+router.get("/events/search/:key", (req, res) => {
+  var inpt = (req.params.key);
+  eventSchema.find({isPrivate: false, eventStatus:0, eventName:new RegExp(inpt, 'i')}).then((data) => {
+    res.json(data);
+  }).catch((err) => {
+    return next(err);
+  })
+});
+
 
 router.post("/user/signup", (req, res, next) => {
   userSchema.findOne({ email: req.body.email }).then((data) => {
@@ -76,6 +159,9 @@ router.post("/user/signup", (req, res, next) => {
           name: req.body.name,
           email: req.body.email,
           password: hashPassword,
+          location: req.body.location,
+          pfp: req.body.pfp,
+          registeredEvents: req.body.registeredEvents,
         };
 
         userSchema.create(newUser).then((data) => {
@@ -89,20 +175,6 @@ router.post("/user/signup", (req, res, next) => {
   });
 });
 
-  // router.post("/user/login", (req, res) => {
-  //   const { email, password } = req.body;
-  //   userSchema.findOne({ email: email }).then((user) => {
-  //     if (user) {
-  //       if (user.password === password) {
-  //         res.json({message:"login successfull", user});
-  //       } else {
-  //         res.json({message: "Password incorrect"});
-  //       }
-  //     } else {
-  //       res.json({message: "No record exits"});
-  //     }
-  //   });
-  // });
 
   router.post("/user/login", (req, res) => {
     const { email, password } = req.body;
@@ -160,8 +232,8 @@ router.post("/user/signup", (req, res, next) => {
    })
 
     
-   router.patch("/events/update/:eid", async (req, res, next) => {
-    const filter = { _id: req.params.eid };
+   router.patch("/:id/events/update/:eid", async (req, res, next) => {
+    const filter = { _id: req.params.eid, userId: req.params.id };
     await eventSchema.findOneAndUpdate(filter, req.body, {
       new: true
     }).then((data) => {
@@ -172,7 +244,15 @@ router.post("/user/signup", (req, res, next) => {
     });
    } )
 
-   
+   router.patch("/:id/events/delete/:eid", async (req, res, next) => {
+    const filter = { _id: req.params.eid, userId: req.params.id };
+    await eventSchema.findOneAndUpdate(filter, {eventStatus:-1},{new: true}).then(() => {
+      console.log( "deleted");
+      return res.json({message: "event deleted successfully"});
+    }).catch((err) => {
+      return next(err);
+    });
+   } )
 
    router.get("/user/:id/home", (req, res, next) => {
     userSchema.findById(req.params.id).then((data) => {
@@ -207,6 +287,32 @@ router.patch('/user/:id/update-pass', async (req, res, next) => {
   }
 });
 
-module.exports = router;
+router.patch("/:id/event/:eid", (req,res,next) => {
+  
+  try{
+    var filter = {_id: req.params.id};
+    const {ticketBooked , email, noOfTickets, eventName, startDate, endDate} = req.body;
+    userSchema.findOneAndUpdate(filter, {$push: {registeredEvents: {eventName, startDate, endDate}}}, {new: true}).then((data)=>{
+      console.log("event added to user")
+    });
+    filter = { _id: req.params.eid };
+  eventSchema.findOneAndUpdate(filter, {ticketBooked: ticketBooked, $push: { registeredUsers:{email, noOfTickets }}
+  }, { new: true}).then((data)=>{
+    console.log("tickBook success");
+    res.json({message: "successful"});
+  })
+  } catch(err){
+    return next(err);
+  } 
+
+})
+
+
+router.post("/event/:eid/delete", (req,res, next)=>{
+  eventSchema.findOneAndDelete({_id: req.params.eid}).catch((err)=>{
+    return next(err);
+  })
+})
 
 module.exports = router;
+

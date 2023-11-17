@@ -6,7 +6,13 @@ const userSchema = new mongoose.Schema(
     name: String,
     email: String,
     password: String,
-    location: String
+    location: String,
+    pfp: String,
+    registeredEvents: [{
+        eventName: String,
+        startDate: Date,
+        endDate: Date,
+    }]
     }
 )
 
