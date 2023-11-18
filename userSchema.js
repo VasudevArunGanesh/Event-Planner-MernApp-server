@@ -9,9 +9,9 @@ const userSchema = new mongoose.Schema(
     location: String,
     pfp: String,
     registeredEvents: [{
-        eventName: String,
-        startDate: Date,
-        endDate: Date,
+        title: String,
+        start: Date,
+        end: Date,
     }]
     }
 )

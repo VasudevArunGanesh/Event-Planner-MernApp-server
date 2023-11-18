@@ -3,6 +3,7 @@ const router = express.Router();
 const eventSchema = require("./eventSchema");
 const userSchema  = require("./userSchema");
 const bcrypt = require('bcrypt');
+const moment = require('moment');
 
 
 router.patch("/", (req,res) =>{
@@ -291,8 +292,8 @@ router.patch("/:id/event/:eid", (req,res,next) => {
   
   try{
     var filter = {_id: req.params.id};
-    const {ticketBooked , email, noOfTickets, eventName, startDate, endDate} = req.body;
-    userSchema.findOneAndUpdate(filter, {$push: {registeredEvents: {eventName, startDate, endDate}}}, {new: true}).then((data)=>{
+    const {ticketBooked , email, noOfTickets, title, start, end} = req.body;
+    userSchema.findOneAndUpdate(filter, {$push: {registeredEvents: {title, start, end}}}, {new: true}).then((data)=>{
       console.log("event added to user")
     });
     filter = { _id: req.params.eid };
@@ -313,6 +314,27 @@ router.post("/event/:eid/delete", (req,res, next)=>{
     return next(err);
   })
 })
+
+router.get("/events/date/:sdate/:edate", (req, res, next) => {
+  
+  const startDate = moment(req.params.sdate).startOf('day');
+  const endDate = moment(req.params.edate).startOf('day');
+  eventSchema.find({
+    isPrivate: false,
+    eventStatus: 0,
+    startDate: { $gte: startDate },
+    endDate: {$lte: endDate}
+  })
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch((err) => {
+    return next(err);
+  });
+
+  
+});
 
 module.exports = router;
 
