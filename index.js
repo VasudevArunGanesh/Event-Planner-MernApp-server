@@ -11,9 +11,7 @@ const app = express();
 
 mongoose.set("strictQuery", true);
 
-mongoose.connect(
-  "mongodb+srv://ethnusmern:ethnusmern@cluster0.oowlki3.mongodb.net/mernproj"
-);
+mongoose.connect(process.env.MONGO_URI);
 
 const db = mongoose.connection;
 db.on("open", () => {
@@ -30,7 +28,7 @@ app.use(express.json({limit: 52428800}));
 
 app.use("/",eventRoute);
 
-const PORT = process.env.PORT || 5500;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log("Server started on " + PORT);
 });
