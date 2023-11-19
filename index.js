@@ -11,7 +11,7 @@ const app = express();
 
 mongoose.set("strictQuery", true);
 
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(`${process.env.MONGO_URI}`);
 
 const db = mongoose.connection;
 db.on("open", () => {
